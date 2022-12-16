@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { fetchJson } from "../lib/fetching";
+import { useSignIn } from "../query_hooks/custom_hooks";
 
 const CMS_URL = process.env.CMS_URL;
 
@@ -8,22 +9,13 @@ export default function SignIn() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState({ loading: false, error: false });
+  const { signIn, signInError, signInLoading } = useSignIn();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setStatus({ loading: true, error: false });
-    try {
-      const response = await fetchJson(`/api/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      setStatus({ loading: false, error: false });
-      console.log("sign in:", response);
+    const valid = await signIn(email, password);
+    if (valid) {
       await router.push("/");
-    } catch (err) {
-      setStatus({ loading: false, error: true });
     }
   };
 
@@ -44,9 +36,9 @@ export default function SignIn() {
           onChange={(event) => setPassword(event.target.value)}
         />
 
-        {status.error && <p>Invalid credentials</p>}
+        {signInError && <p>Invalid credentials</p>}
 
-        {status.loading ? (
+        {signInLoading ? (
           <p>Loading...</p>
         ) : (
           <div>

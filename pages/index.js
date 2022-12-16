@@ -1,8 +1,9 @@
 // npm install cookie
+// npm i @tanstack/react-query
 
 import Link from "next/link";
 import { fetchJson, getProducts } from "../lib/fetching";
-import { useEffect, useState } from "react";
+import { useSignOut, useUser } from "../query_hooks/custom_hooks";
 
 export async function getStaticProps() {
   const products = await getProducts();
@@ -13,25 +14,9 @@ export async function getStaticProps() {
 }
 
 export default function Home({ products }) {
-  const [user, setUser] = useState();
+  const user = useUser();
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const user = await fetchJson("/api/getMe");
-        setUser(user);
-      } catch (err) {
-        // not signed in
-      }
-    })();
-  }, []);
-
-  const handleSignOut = async () => {
-    // await fetchJson("/api/logout", {});
-    await fetch("/api/logout");
-    setUser(undefined);
-    // document.cookie = `jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/api;`;
-  };
+  const signOut = useSignOut();
 
   return (
     <>
@@ -40,7 +25,8 @@ export default function Home({ products }) {
           <ul>
             <li>{user.name}</li>
           </ul>
-          <button onSubmit={handleSignOut}>Logout</button>
+          {/*IN THE PREVIOUS COMMIT, CHANGE onSubmit to onClick to fix a major logout bug!!*/}
+          <button onClick={signOut}>Logout</button>
         </>
       ) : (
         <ul>
